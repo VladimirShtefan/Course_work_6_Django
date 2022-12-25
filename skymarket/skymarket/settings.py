@@ -94,7 +94,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 3,
+    'PAGE_SIZE': 4,
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
@@ -108,8 +108,7 @@ DJOSER = {
     'SEND_CONFIRMATION_EMAIL': True,
     'SET_USERNAME_RETYPE': True,
     'SET_PASSWORD_RETYPE': True,
-    # 'USERNAME_RESET_CONFIRM_URL': 'users/reset_password/{uid}/{token}/',
-    'PASSWORD_RESET_CONFIRM_URL': 'users/reset_password/{uid}/{token}/',
+    'PASSWORD_RESET_CONFIRM_URL': 'password/reset/confirm/{uid}/{token}/',
 }
 
 SIMPLE_JWT = {
@@ -196,7 +195,7 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
 }
 
-TOTAL_ON_PAGE = 10
+TOTAL_ON_PAGE = 4
 
 # LOGGING = {
 #     'version': 1,
@@ -221,3 +220,4 @@ TOTAL_ON_PAGE = 10
 # }
 
 PHONENUMBER_DEFAULT_REGION = 'RU'
+DOMAIN = '127.0.0.1:80'

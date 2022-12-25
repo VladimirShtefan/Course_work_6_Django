@@ -16,7 +16,7 @@ class UserRoles(models.TextChoices):
 class User(AbstractBaseUser):
     first_name = models.CharField(max_length=30, null=False, blank=False, verbose_name=_('Имя пользователя'))
     last_name = models.CharField(max_length=30, null=False, blank=False, verbose_name=_('Фамилия пользователя'))
-    phone = PhoneNumberField(null=False, blank=False, verbose_name=_('Телефон для связи'))
+    phone = PhoneNumberField(null=False, blank=False, unique=True, verbose_name=_('Телефон для связи'))
     email = models.EmailField(max_length=254, unique=True, verbose_name=_('Электронная почта'))
     role = models.CharField(max_length=5, choices=UserRoles.choices, default='user', verbose_name=_('Роль'))
     image = models.ImageField(upload_to='post_images/', null=True, blank=True, verbose_name=_('Аватарка'))
