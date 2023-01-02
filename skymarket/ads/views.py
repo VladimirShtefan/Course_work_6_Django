@@ -28,6 +28,7 @@ class AdViewSet(viewsets.ModelViewSet):
         'retrieve': (IsAuthenticated, ),
         'create': (IsAuthenticated, ),
         'partial_update': (AdOwnerPermission, ),
+        'update': (AdOwnerPermission, ),
         'destroy': (AdOwnerPermission, ),
     }
 
@@ -35,7 +36,7 @@ class AdViewSet(viewsets.ModelViewSet):
         return [permission() for permission in self.permission_classes_by_action[self.action]]
 
     def get_serializer_class(self):
-        return self.serializer_classes.get(self.action)
+        return self.serializer_classes.get(self.action, AdListSerializer)
 
     def create(self, request, *args, **kwargs):
         request.data['author_id'] = int(self.request.user.id)

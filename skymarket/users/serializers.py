@@ -1,4 +1,4 @@
-from djoser.serializers import UserCreateSerializer as BaseUserRegistrationSerializer, UserSerializer
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
@@ -13,7 +13,7 @@ class CustomUserSerializer(UserSerializer):
         fields = ('email', 'id', 'first_name', 'last_name', 'phone', 'image')
 
 
-class UserRegistrationSerializer(BaseUserRegistrationSerializer):
+class UserRegistrationSerializer(UserCreateSerializer):
     image = serializers.ImageField(required=False)
     password = serializers.CharField(write_only=True)
     first_name = serializers.CharField(required=True)
