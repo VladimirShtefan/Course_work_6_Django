@@ -1,60 +1,93 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import pagination, viewsets
-from rest_framework.permissions import AllowAny
+from rest_framework.generics import ListAPIView
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
+from ads.filters import AdTitleFilter
 from ads.models import Ad, Comment
-from ads.serializers import AdSerializer, CommentSerializer, AdListSerializer
-
-
-class AdPagination(pagination.PageNumberPagination):
-    page_size = 4
-    max_page_size = 4
+from ads.permissions import AdOwnerPermission
+from ads.serializers import AdListSerializer, AdRetrieveSerializer, AdCreateSerializer, AdUpdateSerializer, \
+    CommentsListSerializer, CommentCreateSerializer, CommentUpdateSerializer
 
 
 class AdViewSet(viewsets.ModelViewSet):
     queryset = Ad.objects.select_related('author').all()
+
+    filter_backends = (DjangoFilterBackend, )
+    filterset_class = AdTitleFilter
+
     serializer_classes = {
         'list': AdListSerializer,
-        'retrieve': AdSerializer,
+        'retrieve': AdRetrieveSerializer,
+        'create': AdCreateSerializer,
+        'partial_update': AdUpdateSerializer,
     }
-    default_serializer_class = AdSerializer
-    pagination_class = AdPagination
 
     permission_classes_by_action = {
-        'default': (AllowAny,),
-        'create': (AllowAny,),
-        'list': (AllowAny,),
-        'retrieve': (AllowAny,),
-        'update': (AllowAny,),
-        'destroy': (AllowAny,),
+        'list': (AllowAny, ),
+        'retrieve': (IsAuthenticated, ),
+        'create': (IsAuthenticated, ),
+        'partial_update': (AdOwnerPermission, ),
+        'destroy': (AdOwnerPermission, ),
     }
 
     def get_permissions(self):
-        try:
-            return [permission() for permission in self.permission_classes_by_action[self.action]]
-        except KeyError:
-            return [permission() for permission in self.permission_classes_by_action["default"]]
+        return [permission() for permission in self.permission_classes_by_action[self.action]]
+
+    def get_serializer_class(self):
+        return self.serializer_classes.get(self.action)
+
+    def create(self, request, *args, **kwargs):
+        request.data['author_id'] = int(self.request.user.id)
+        return super().create(request, *args, **kwargs)
+
+
+class AdUserOwnerListView(ListAPIView):
+    queryset = Ad.objects.all()
+    serializer_class = AdListSerializer
+    permission_classes = (IsAuthenticated, )
+
+    def get(self, request, *args, **kwargs):
+        self.queryset = self.queryset.filter(author_id=request.user.id)
+        return super().get(request, *args, **kwargs)
+
+
+class CommentPagination(pagination.PageNumberPagination):
+    def paginate_queryset(self, queryset, request, view=None):
+        self.page_size = len(queryset) or self.page_size
+        return super().paginate_queryset(queryset, request, view)
+
+
+class CommentsViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    pagination_class = CommentPagination
+
+    default_serializer_class = CommentsListSerializer
+    serializer_classes = {
+        'create': CommentCreateSerializer,
+        'partial_update': CommentUpdateSerializer,
+    }
+
+    permission_classes_by_action = {
+        'list': (IsAuthenticated, ),
+        'retrieve': (IsAuthenticated, ),
+        'create': (IsAuthenticated, ),
+        'partial_update': (AdOwnerPermission, ),
+        'update': (AdOwnerPermission, ),
+        'destroy': (AdOwnerPermission, ),
+    }
+
+    def get_permissions(self):
+        return [permission() for permission in self.permission_classes_by_action[self.action]]
 
     def get_serializer_class(self):
         return self.serializer_classes.get(self.action, self.default_serializer_class)
 
+    def get_queryset(self):
+        return self.queryset.filter(ad_id=self.kwargs['ad_pk'])
 
-class CommentViewSet(viewsets.ModelViewSet):
-    queryset = Comment.objects.select_related('user_comment').select_related('ad_comment').all()
-    serializer_class = CommentSerializer
-    permission_classes = (AllowAny,)
-
-    permission_classes_by_action = {
-        'default': (AllowAny,),
-        'create': (AllowAny,),
-        'list': (AllowAny,),
-        'retrieve': (AllowAny,),
-        'update': (AllowAny,),
-        'destroy': (AllowAny,),
-    }
-
-    def get_permissions(self):
-        try:
-            return [permission() for permission in self.permission_classes_by_action[self.action]]
-        except KeyError:
-            return [permission() for permission in self.permission_classes_by_action["default"]]
+    def create(self, request, *args, **kwargs):
+        request.data['author_id'] = int(self.request.user.id)
+        request.data['ad_id'] = int(self.kwargs['ad_pk'])
+        return super().create(request, *args, **kwargs)
 
