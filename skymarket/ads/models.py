@@ -10,7 +10,7 @@ class Ad(models.Model):
     description = models.CharField(max_length=1000, blank=True, null=True, verbose_name='Описание товара')
     author = models.ForeignKey(User, verbose_name='Пользователь', on_delete=models.CASCADE, related_name='user_ad')
     created_at = models.DateTimeField(auto_now_add=True)
-    image = models.ImageField(upload_to='post_images/', null=True, blank=True, verbose_name='Изображение')
+    image = models.ImageField(null=True, blank=True, verbose_name='Изображение', max_length=1500)
 
     class Meta:
         verbose_name = 'Объявление'
@@ -22,7 +22,7 @@ class Ad(models.Model):
 
 
 class Comment(models.Model):
-    text = models.CharField(max_length=500, blank=False, null=False, verbose_name='Текст отзыва')
+    text = models.CharField(max_length=1000, blank=False, null=False, verbose_name='Текст отзыва')
     author = models.ForeignKey(User, verbose_name='Пользователь', on_delete=models.CASCADE, related_name='user_comment')
     ad = models.ForeignKey(Ad, verbose_name='Объявление', on_delete=models.CASCADE, related_name='ad_comment')
     created_at = models.DateTimeField(auto_now_add=True)
